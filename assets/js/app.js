@@ -6,6 +6,36 @@ window.posicaoSumario = null;
 let viewportScrollLeft = 0;
 let renderSumariosToken = 0;
 let mudouPagina = false;
+let pageIndicatorTimeout;
+
+function mostrarIndicadorPagina() {
+
+    let el = document.getElementById("page-indicator");
+
+    if (!el) {
+        el = document.createElement("div");
+        el.id = "page-indicator";
+        el.className = "page-indicator";
+        document.body.appendChild(el);
+    }
+
+    el.textContent = "Página " + paginaAtual;
+
+    // reset estado
+    el.style.opacity = "0";
+
+    clearTimeout(pageIndicatorTimeout);
+
+    // fade in
+    requestAnimationFrame(() => {
+        el.style.opacity = "1";
+    });
+
+    // fade out
+    pageIndicatorTimeout = setTimeout(() => {
+        el.style.opacity = "0";
+    }, 1000);
+}
 
 function inserirPagina(paginaBase) {
 
@@ -625,27 +655,22 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function init() {
 
-    // 🔥 RESTAURAR PÁGINA
-    const saved = parseInt(localStorage.getItem("paginaAtual"));
-    if (saved && saved > 0) {
-        paginaAtual = saved;
-    }
+	const saved = parseInt(localStorage.getItem("paginaAtual"));
 
-    initMenu();
+	if (saved && saved > 0) {
+		paginaAtual = saved;
+	} else {
+		paginaAtual = 1;
+		localStorage.setItem("paginaAtual", paginaAtual);
+	}
+
+		initMenu();
     
     fetch("list_pages.php")
     .then(res => res.json())
     .then(paginas => {
     
         paginas.sort((a, b) => a - b);
-    
-        if (!paginas.length) {
-            paginaAtual = 1;
-        } else {
-            paginaAtual = paginas[paginas.length - 1];
-        }
-    
-        localStorage.setItem("paginaAtual", paginaAtual);
     
         renderPaginas();
         

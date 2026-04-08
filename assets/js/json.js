@@ -505,6 +505,10 @@ function carregarPagina() {
         });
         
         atualizarBotoesNavegacao();
+		
+		if (typeof mostrarIndicadorPagina === "function") {
+			mostrarIndicadorPagina();
+		}
         
         // 🔥 FORÇAR SCROLL NO FIM DO RENDER
         requestAnimationFrame(() => {
