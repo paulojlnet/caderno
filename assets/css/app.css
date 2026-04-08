@@ -49,6 +49,8 @@ html, body {
     transform: translateZ(0);
 	transform: translateX(0);
 	image-rendering: pixelated;
+	transform: translateZ(0);
+    will-change: transform;
 }
 
 .linha-vertical {
@@ -70,13 +72,22 @@ html, body {
     right: 62px;
 }
 
+.linha-horizontal {
+    position: absolute;
+    left: 0;
+    width: 100%;
+    height: 2px;
+
+    background: rgba(0,0,0,0.25);
+
+    pointer-events: none;
+    z-index: 1;
+}
 
 /* === PAUTADO === */
 .pautado {
-    background-image: url("/imagens/pautado.svg");
-    background-repeat: repeat-y;
-    background-size: 100% 35px;
-    background-position: 0 116px;
+	background: linear-gradient(steelblue 0.3px, transparent 1px), #FFF;
+    background-size: 35px 35px;
 }
 
 #caderno-wrapper {
