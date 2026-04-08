@@ -655,27 +655,36 @@ document.addEventListener("DOMContentLoaded", () => {
 
 function init() {
 
-	const saved = parseInt(localStorage.getItem("paginaAtual"));
+    const saved = parseInt(localStorage.getItem("paginaAtual"));
 
-	if (saved && saved > 0) {
-		paginaAtual = saved;
-	} else {
-		paginaAtual = 1;
-		localStorage.setItem("paginaAtual", paginaAtual);
-	}
-
-		initMenu();
+    initMenu();
     
     fetch("list_pages.php")
     .then(res => res.json())
     .then(paginas => {
-    
+
         paginas.sort((a, b) => a - b);
-    
+
+        //ESTE BLOCO ATÉ localStorage... garante que se comece sempre em "pagina_1,json"
+		if (!paginas.length) {
+            paginaAtual = 1;
+        } else {
+
+            const primeira = paginas[0];
+            const ultima = paginas[paginas.length - 1];
+
+            // 🔥 validar localStorage
+            if (saved && paginas.includes(saved)) {
+                paginaAtual = saved;
+            } else {
+                paginaAtual = ultima; // 🔥 fallback correto
+            }
+        }
+
+        localStorage.setItem("paginaAtual", paginaAtual);
+
         renderPaginas();
-        
         carregarPagina();
-        
     });
 }
 
