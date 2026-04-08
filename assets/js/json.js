@@ -3,6 +3,26 @@ let isTouch = false;
 let blocoParaApagar = null;
 let pendingPosition = null;
 
+function desenharLinhas() {
+
+    // remover linhas antigas
+    folha.querySelectorAll('.linha-horizontal').forEach(l => l.remove());
+
+    const altura = 1855;
+    const espacamento = 35;
+    const offset = 116;
+
+    for (let y = offset; y < altura; y += espacamento) {
+
+        const linha = document.createElement('div');
+        linha.className = 'linha-horizontal';
+
+        linha.style.top = y + 'px';
+
+        folha.appendChild(linha);
+    }
+}
+
 function limparBlocosInvalidos() {
     folha.querySelectorAll(".bloco").forEach(b => {
         if (b.dataset.valido !== "true") {
@@ -391,6 +411,7 @@ function carregarPagina() {
     
         // 🔥 remover apenas blocos
         folha.querySelectorAll(".bloco").forEach(b => b.remove());
+		desenharLinhas();
     
         dados.forEach(el => {
     
