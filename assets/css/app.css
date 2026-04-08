@@ -1385,3 +1385,25 @@ html, body {
 .user-form-actions .btn-cancel {
     background: #ccc;
 }
+
+.page-indicator {
+  position: fixed;
+  top: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  
+  padding: 5px;
+  border-radius: 5px;
+  
+  font-size: 14px;
+  font-weight: 500;
+  
+  opacity: 0;
+  pointer-events: none;
+  
+  transition: opacity 0.2s ease;
+  z-index: 9999;
+}
