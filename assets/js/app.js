@@ -207,8 +207,6 @@ function irParaPagina(p) {
 
     localStorage.setItem("paginaAtual", paginaAtual);
 
-    window.scrollTo(0, 0);
-
     carregarPagina();
     renderPaginas();
 }
@@ -769,8 +767,6 @@ function initMenu() {
     
                             paginaAtual = i;
 
-                            window.scrollTo(0, 0); // 🔥 RESET
-                            
                             carregarPagina();
                             renderPaginas();
     

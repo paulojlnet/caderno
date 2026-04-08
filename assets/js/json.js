@@ -505,6 +505,13 @@ function carregarPagina() {
         });
         
         atualizarBotoesNavegacao();
+        
+        // 🔥 FORÇAR SCROLL NO FIM DO RENDER
+        requestAnimationFrame(() => {
+            requestAnimationFrame(() => {
+                window.scrollTo(0, 0);
+            });
+        });
     
     });
 
