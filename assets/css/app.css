@@ -46,7 +46,8 @@ html, body {
     background: #fff;
     position: relative;
     overflow: hidden;
-    
+    transform: translateZ(0);
+	image-rendering: pixelated;
 }
 
 .linha-vertical {
@@ -71,10 +72,15 @@ html, body {
 
 /* === PAUTADO === */
 .pautado {
-    background-image: linear-gradient(to bottom, transparent 34px, #000 35px);
-    background-size: 100% 35px;
+    background-image: repeating-linear-gradient(
+        to bottom,
+        transparent 0px,
+        transparent 34px,
+        rgba(0,0,0,0.6) 34px,
+        rgba(0,0,0,0.6) 35px
+    );
 
-    background-position: 0 116px; /* 🔥 valor fixo e claro */
+    background-position: 0 116px;
 }
 
 #caderno-wrapper {
