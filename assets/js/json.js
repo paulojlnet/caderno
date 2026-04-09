@@ -1068,12 +1068,8 @@ document.addEventListener("beforeinput", function(e) {
 	// 🔥 inserir no ponto correto usando Range
 	const range = selection.getRangeAt(0);
 
-	// se topo já é filho direto do <p>
-	if (topo.parentElement === p) {
-		range.setStartAfter(topo);
-	} else {
-		range.setStartAfter(formatado);
-	}
+	// 🔥 sair SEMPRE do topo da formatação
+	range.setStartAfter(topo);
 
 	// 🔥 CORREÇÃO CRÍTICA: garantir que não saiu do <p>
 	if (!p.contains(range.startContainer)) {
