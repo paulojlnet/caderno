@@ -1073,7 +1073,7 @@ document.addEventListener("beforeinput", function(e) {
 		range.setStartAfter(topo);
 	} else {
 		// 🔥 senão, sai só da formatação interna (não do <p>)
-		range.setStartAfter(formatado);
+		range.setStartAfter(topo);
 	}
 
 	range.collapse(true);
