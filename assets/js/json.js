@@ -1029,6 +1029,9 @@ document.addEventListener("beforeinput", function(e) {
 
     // 🔥 só quando está no fim
     if (offset !== node.length) return;
+	
+	// 🔥 só para texto real (evita bloqueios)
+	if (!e.data || e.inputType !== "insertText") return;
 
     const parent = node.parentElement;
     if (!parent) return;
@@ -1047,7 +1050,7 @@ document.addEventListener("beforeinput", function(e) {
     e.preventDefault();
 
     // 🔥 criar nó limpo
-    const textoNovo = document.createTextNode(e.data || "");
+    const textoNovo = document.createTextNode(e.data);
 
     // 🔥 inserir depois do bloco formatado COMPLETO
 	let topo = formatado;
@@ -1063,8 +1066,12 @@ document.addEventListener("beforeinput", function(e) {
 		p = bloco;
 	}
 
-	// 🔥 inserir DENTRO do <p>, não fora
-	p.insertBefore(textoNovo, topo.nextSibling);
+	// 🔥 inserir corretamente no <p>
+	if (topo.nextSibling) {
+		p.insertBefore(textoNovo, topo.nextSibling);
+	} else {
+		p.appendChild(textoNovo);
+	}
 
     // 🔥 mover cursor
     const range = document.createRange();
