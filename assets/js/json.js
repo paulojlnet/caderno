@@ -2,6 +2,14 @@ let folha;
 let isTouch = false;
 let blocoParaApagar = null;
 let pendingPosition = null;
+let activeBlock = null;
+
+document.addEventListener("focusin", (e) => {
+    const bloco = e.target.closest(".bloco");
+    if (bloco) {
+        activeBlock = bloco;
+    }
+});
 
 function limparBlocosInvalidos() {
     folha.querySelectorAll(".bloco").forEach(b => {
@@ -524,6 +532,8 @@ function carregarPagina() {
 let saveTimeout;
 
 document.addEventListener("DOMContentLoaded", () => {
+	
+	esconderToolbar();
 
     folha = document.getElementById("folha");
     if (!folha) return;
@@ -770,12 +780,72 @@ function ativarResize(bloco) {
 
 document.addEventListener("click", function(e) {
 
-    const btn = e.target.closest("#toolbar-global button");
+    // 🔥 1. BOTÕES DE COR (POSICIONAMENTO)
+    const btnText = e.target.closest("#btn-text-color");
+	if (btnText) {
+
+        const palette = document.getElementById("palette-text");
+        const rect = e.target.getBoundingClientRect();
+
+        palette.style.left = rect.left + "px";
+        palette.style.top = (rect.bottom + 5) + "px";
+		palette.style.left = rect.left + "px";
+
+        document.getElementById("palette-text").classList.add("hidden");
+		document.getElementById("palette-bg").classList.add("hidden");
+
+		palette.classList.remove("hidden");
+		
+        document.getElementById("palette-bg").classList.add("hidden");
+        return;
+    }
+
+    const btnBg = e.target.closest("#btn-bg-color");
+	if (btnBg) {
+
+        const palette = document.getElementById("palette-bg");
+        const rect = e.target.getBoundingClientRect();
+
+        palette.style.left = rect.left + "px";
+        palette.style.top = (rect.bottom + window.scrollY + 5) + "px";
+
+        palette.classList.remove("hidden");
+        document.getElementById("palette-text").classList.add("hidden");
+        return;
+    }
+
+    // 🔥 4. BOTÕES NORMAIS (bold, italic, etc.)
+	const btn = e.target.closest("#toolbar-global button");
+
+	if (btn) {
+
+		// 🔥 se NÃO for botão de cor → fechar paletas
+		if (!btn.closest("#btn-text-color") && !btn.closest("#btn-bg-color")) {
+			document.getElementById("palette-text").classList.add("hidden");
+			document.getElementById("palette-bg").classList.add("hidden");
+		}
+
+		const cmd = btn.dataset.cmd;
+
+		if (cmd) {
+			document.execCommand(cmd, false, null);
+		}
+
+		return;
+	}
+	
     if (!btn) return;
 
     const cmd = btn.dataset.cmd;
 
-    document.execCommand(cmd, false, null);
+    if (cmd) {
+        document.execCommand(cmd, false, null);
+    }
+	
+    if (!e.target.closest("#toolbar-global") && !e.target.closest(".palette")) {
+        document.getElementById("palette-text").classList.add("hidden");
+        document.getElementById("palette-bg").classList.add("hidden");
+    }
 
 });
 
@@ -812,6 +882,7 @@ document.addEventListener("selectionchange", () => {
     }
 
     mostrarToolbar(range);
+	atualizarToolbarEstado();
 });
 
 
@@ -836,6 +907,8 @@ function mostrarToolbar(range) {
     toolbar.style.left = left + "px";
     toolbar.style.top = top + "px";
     toolbar.style.display = "flex";
+	document.getElementById("palette-text").classList.add("hidden");
+	document.getElementById("palette-bg").classList.add("hidden");
 }
 
 
@@ -844,6 +917,33 @@ function esconderToolbar() {
     if (!toolbar) return;
 
     toolbar.style.display = "none";
+}
+
+function atualizarToolbarEstado() {
+
+    const toolbar = document.getElementById("toolbar-global");
+    if (!toolbar) return;
+
+    const comandos = [
+        { cmd: "bold", selector: '[data-cmd="bold"]' },
+        { cmd: "italic", selector: '[data-cmd="italic"]' },
+        { cmd: "underline", selector: '[data-cmd="underline"]' },
+        { cmd: "justifyLeft", selector: '[data-cmd="justifyLeft"]' },
+        { cmd: "justifyCenter", selector: '[data-cmd="justifyCenter"]' },
+        { cmd: "justifyRight", selector: '[data-cmd="justifyRight"]' },
+        { cmd: "justifyFull", selector: '[data-cmd="justifyFull"]' }
+    ];
+
+    comandos.forEach(c => {
+        const btn = toolbar.querySelector(c.selector);
+        if (!btn) return;
+
+        if (document.queryCommandState(c.cmd)) {
+            btn.classList.add("ativo");
+        } else {
+            btn.classList.remove("ativo");
+        }
+    });
 }
 
 document.getElementById("delete-ok").onclick = () => {
@@ -929,3 +1029,29 @@ function existeColisao(x, y, largura, altura, ignorarBloco = null) {
 
     return false;
 }
+
+// 🔥 COR TEXTO
+document.querySelectorAll("#palette-text span").forEach(el => {
+    el.addEventListener("mousedown", function(e) {
+
+        e.preventDefault(); // 🔥 mantém seleção
+
+        document.execCommand("foreColor", false, this.dataset.color);
+
+        document.getElementById("palette-text").classList.add("hidden");
+    });
+});
+
+// 🔥 COR FUNDO
+document.querySelectorAll("#palette-bg span").forEach(el => {
+    el.addEventListener("mousedown", function(e) {
+
+        e.preventDefault(); // 🔥 mantém seleção
+
+        document.execCommand("hiliteColor", false, this.dataset.color);
+		
+		document.querySelector("#btn-bg-color span").style.background = this.dataset.color;
+
+        document.getElementById("palette-bg").classList.add("hidden");
+    });
+});
