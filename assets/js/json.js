@@ -1027,30 +1027,29 @@ document.addEventListener("beforeinput", function(e) {
 
     const offset = selection.anchorOffset;
 
-    // 🔥 só quando está no fim
-    if (offset !== node.length) return;
-	
-	// 🔥 só para texto real (evita bloqueios)
-	if (!e.data || e.inputType !== "insertText") return;
+	// 🔥 só quando está no fim
+	if (offset !== node.length) return;
 
-    const parent = node.parentElement;
-    if (!parent) return;
+	// 🔥 só texto normal
+	if (e.inputType !== "insertText") return;
 
-    const bloco = parent.closest(".bloco");
-    if (!bloco) return;
+	const parent = node.parentElement;
+	if (!parent) return;
 
-    // 🔥 verificar se está dentro de formatação
-    const formatado = parent.closest("font, b, strong, i, em, u, span");
-    if (!formatado) return;
+	const bloco = parent.closest(".bloco");
+	if (!bloco) return;
 
-    // ==========================
-    // 🔥 DIVIDIR FORMATAÇÃO
-    // ==========================
+	// 🔥 verificar se está dentro de formatação
+	const formatado = parent.closest("font, b, strong, i, em, u, span");
+	if (!formatado) return;
 
-    e.preventDefault();
+	const texto = e.data ?? "";
+	if (!texto) return;
 
-    // 🔥 criar nó limpo
-    const textoNovo = document.createTextNode(e.data);
+	e.preventDefault();
+
+	// 🔥 criar nó limpo
+	const textoNovo = document.createTextNode(texto);
 
     // 🔥 inserir depois do bloco formatado COMPLETO
 	let topo = formatado;
