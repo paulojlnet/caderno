@@ -895,12 +895,6 @@ document.addEventListener("selectionchange", () => {
     const parent = node.parentElement;
     if (!parent) return;
 
-    const tagsFormatadas = ["STRONG", "B", "U", "I"];
-
-    if (tagsFormatadas.includes(parent.tagName)) {
-        document.execCommand("removeFormat");
-    }
-
 });
 
 
@@ -1022,50 +1016,6 @@ document.addEventListener("keydown", function(e) {
     }
 });
 
-document.addEventListener("keydown", function(e) {
-
-    if (e.ctrlKey || e.metaKey) return;
-
-    const selection = window.getSelection();
-    if (!selection.rangeCount) return;
-    if (!selection.isCollapsed) return;
-
-    const node = selection.anchorNode;
-    if (!node || node.nodeType !== 3) return;
-
-    // só no fim da palavra
-    if (selection.anchorOffset !== node.length) return;
-
-    let parent = node.parentElement;
-    if (!parent) return;
-
-    // 🔥 subir até encontrar span com estilos
-    while (parent && parent !== document.body) {
-
-        if (parent.tagName === "SPAN" && parent.style.backgroundColor) {
-
-            // 🔥 sair do span de fundo
-            const range = selection.getRangeAt(0);
-
-            const textNode = document.createTextNode("");
-
-            parent.parentNode.insertBefore(textNode, parent.nextSibling);
-
-            const newRange = document.createRange();
-            newRange.setStart(textNode, 0);
-            newRange.collapse(true);
-
-            selection.removeAllRanges();
-            selection.addRange(newRange);
-
-            break;
-        }
-
-        parent = parent.parentElement;
-    }
-
-});
-
 function existeColisao(x, y, largura, altura, ignorarBloco = null) {
 
     const blocos = folha.querySelectorAll(".bloco");
@@ -1116,4 +1066,49 @@ document.querySelectorAll("#palette-bg span").forEach(el => {
 
         document.getElementById("palette-bg").classList.add("hidden");
     });
+});
+
+document.addEventListener("keydown", function(e) {
+
+    if (e.ctrlKey || e.metaKey) return;
+
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+    if (!selection.isCollapsed) return;
+
+    const node = selection.anchorNode;
+    if (!node || node.nodeType !== 3) return;
+
+    // só no fim do texto
+    if (selection.anchorOffset !== node.length) return;
+
+    let parent = node.parentElement;
+    if (!parent) return;
+
+    // 🔥 PROCURAR <font>
+    while (parent && parent !== document.body) {
+
+        if (parent.tagName === "FONT") {
+
+            const range = selection.getRangeAt(0);
+
+            // criar nó fora do <font>
+            const textNode = document.createTextNode("");
+
+            parent.parentNode.insertBefore(textNode, parent.nextSibling);
+
+            // mover cursor
+            const newRange = document.createRange();
+            newRange.setStart(textNode, 0);
+            newRange.collapse(true);
+
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+
+            return;
+        }
+
+        parent = parent.parentElement;
+    }
+
 });
