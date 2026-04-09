@@ -1065,20 +1065,31 @@ document.addEventListener("beforeinput", function(e) {
 		p = bloco;
 	}
 
-	// 🔥 inserir corretamente no <p>
-	if (topo.nextSibling) {
-		p.insertBefore(textoNovo, topo.nextSibling);
+	// 🔥 inserir no ponto correto usando Range
+	const range = selection.getRangeAt(0);
+
+	// 🔥 encontrar o <p>
+	const p = topo.closest("p");
+
+	// 🔥 se o topo já for filho direto do <p>, usa o topo
+	if (topo.parentElement === p) {
+		range.setStartAfter(topo);
 	} else {
-		p.appendChild(textoNovo);
+		// 🔥 senão, sai só da formatação interna (não do <p>)
+		range.setStartAfter(formatado);
 	}
 
-    // 🔥 mover cursor
-    const range = document.createRange();
-    range.setStart(textoNovo, textoNovo.length);
-    range.collapse(true);
+	range.collapse(true);
 
-    selection.removeAllRanges();
-    selection.addRange(range);
+	// inserir texto limpo
+	range.insertNode(textoNovo);
+
+	// 🔥 mover cursor para depois do texto
+	range.setStartAfter(textoNovo);
+	range.collapse(true);
+
+	selection.removeAllRanges();
+	selection.addRange(range);
 });
 
 function existeColisao(x, y, largura, altura, ignorarBloco = null) {
