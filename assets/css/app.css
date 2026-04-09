@@ -267,14 +267,16 @@ html, body {
   border: 1px solid #ccc;
   border-radius: 8px;
 
-  display: none;
+  display: flex;
+  flex-wrap: nowrap;
+  width: max-content; /* 🔥 ajusta ao conteúdo */
   align-items: center;
   justify-content: center;
-  gap: 8px;
+  gap: 6px;
 
   padding: 5px;
 
-  z-index: 9999;
+  z-index: 1000;
 
   box-shadow: 0 4px 12px rgba(0,0,0,0.15);
 }
@@ -282,8 +284,16 @@ html, body {
 #toolbar-global button {
   border: none;
   background: none;
-  padding: 5px 8px;
+  padding: 0 6px;
   cursor: pointer;
+  min-width: 32px;
+  width: auto;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  flex: 0 0 auto;
 }
 
 #toolbar-global button:hover {
@@ -1411,4 +1421,159 @@ html, body {
   
   transition: opacity 0.2s ease;
   z-index: 9999;
+}
+
+.color-group {
+    display: flex;
+    gap: 6px;
+    align-items: center;
+}
+
+.color-palette {
+    display: flex;
+    gap: 4px;
+}
+
+.color-palette span {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    cursor: pointer;
+    border: 1px solid #ccc;
+}
+
+.palette {
+    position: fixed; /* 🔥 em vez de absolute */
+    display: block;
+    gap: 4px;
+    padding: 6px;
+    background: #fff;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    z-index: 1000;
+}
+
+.palette.hidden {
+    display: none;
+}
+
+.palette span {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    border: 1px solid #999;
+}
+
+.palette .row {
+    display: flex;
+    gap: 4px;
+    margin-bottom: 4px;
+}
+
+.palette .row:last-child {
+    margin-bottom: 0;
+}
+
+#palette-bg {
+    display: flex;
+    gap: 4px;
+}
+
+.align-group {
+    display: flex;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.align-group button {
+    width: 32px;
+    height: 28px;
+    border: none;
+    border-right: 1px solid #ccc;
+    background: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.align-group button:last-child {
+    border-right: none;
+}
+
+/* linhas de alinhamento */
+.align {
+    display: block;
+    width: 16px;
+    height: 12px;
+    position: relative;
+}
+
+.align::before {
+    content: "";
+    display: block;
+    width: 100%;
+    height: 2px;
+    background: #000;
+    box-shadow:
+        0 4px 0 #000,
+        0 8px 0 #000;
+}
+
+/* variações */
+.align.left::before {
+    width: 70%;
+}
+
+.align.center::before {
+    width: 70%;
+    margin: 0 auto;
+}
+
+.align.right::before {
+    width: 70%;
+    margin-left: auto;
+}
+
+.align.justify::before {
+    width: 100%;
+}
+
+.align.left   { width: 12px; }
+.align.center { width: 14px; margin: 0 auto; }
+.align.right  { width: 12px; margin-left: auto; }
+.align.justify{ width: 16px; }
+
+.btn-color-bg {
+    position: relative;
+    width: 32px;
+    height: 28px;
+}
+
+.btn-color-bg span {
+    position: absolute;
+    bottom: 3px;
+    left: 4px;
+    right: 4px;
+    height: 4px;
+    background: #fff59d; /* cor default */
+}
+
+.btn-color-text {
+    color: #0000FF; /* vermelho */
+}
+
+.btn-wide {
+    width: auto !important;
+	display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0 10px;
+    height: 28px;
+    white-space: nowrap;
+}
+
+#toolbar-global button.ativo {
+    background: #e0e0e0;
+    border-color: #999;
 }
