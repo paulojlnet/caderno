@@ -1089,7 +1089,21 @@ document.addEventListener("beforeinput", function(e) {
 	const range = selection.getRangeAt(0);
 
 	// 🔥 sair SEMPRE do topo da formatação
-	range.setStartAfter(topo);
+	const li = parent.closest("li");
+
+	if (li) {
+		// 🔥 recriar range LIMPO dentro do <li>
+		const novoRange = document.createRange();
+		novoRange.setStart(li, li.childNodes.length);
+		novoRange.collapse(true);
+
+		selection.removeAllRanges();
+		selection.addRange(novoRange);
+
+	} else {
+		// 🔥 comportamento normal fora de listas
+		range.setStartAfter(topo);
+	}
 
 	// 🔥 CORREÇÃO CRÍTICA: garantir que não saiu do <p>
 	if (!p.contains(range.startContainer)) {
