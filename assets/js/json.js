@@ -1017,6 +1017,8 @@ document.addEventListener("keydown", function(e) {
 });
 
 document.addEventListener("beforeinput", function(e) {
+	// 🔥 só atuar quando é escrita normal
+	if (e.inputType !== "insertText") return;
 
     const selection = window.getSelection();
     if (!selection.rangeCount) return;
@@ -1038,10 +1040,43 @@ document.addEventListener("beforeinput", function(e) {
 
 	const bloco = parent.closest(".bloco");
 	if (!bloco) return;
+
+// ==========================
+// 🔥 FIX DEFINITIVO PARA LISTAS
+// ==========================
+const li = parent.closest("li");
+
+if (li) {
+    // 🔥 só atuar no fim do texto
+    if (selection.anchorOffset !== node.length) return;
+
+    // 🔥 só para texto normal
+    if (e.inputType !== "insertText") return;
+
+    const texto = e.data ?? "";
+    if (!texto) return;
+
+    e.preventDefault();
+
+    // 🔥 inserir texto LIMPO fora da formatação
+    const textNode = document.createTextNode(texto);
+    li.appendChild(textNode);
+
+    // 🔥 posicionar cursor
+    const range = document.createRange();
+    range.setStart(textNode, textNode.length);
+    range.collapse(true);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
+
+    return; // 🔥 MUITO IMPORTANTE
+}
 	
 	// ==========================
 	// 🔥 CORREÇÃO PARA LISTAS (ul / ol)
 	// ==========================
+	
 	const lista = parent.closest("ol, ul");
 
 	if (lista) {
