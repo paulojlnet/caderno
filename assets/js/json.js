@@ -1016,7 +1016,7 @@ document.addEventListener("keydown", function(e) {
     }
 });
 
-document.addEventListener("input", function(e) {
+document.addEventListener("beforeinput", function(e) {
 
     const selection = window.getSelection();
     if (!selection.rangeCount) return;
@@ -1025,19 +1025,54 @@ document.addEventListener("input", function(e) {
     const node = selection.anchorNode;
     if (!node || node.nodeType !== 3) return;
 
+    const offset = selection.anchorOffset;
+
+    // 🔥 só quando está no fim
+    if (offset !== node.length) return;
+
     const parent = node.parentElement;
     if (!parent) return;
 
-    // 🔥 só atuar se estiver dentro de formatação
-    const temFormatacao = parent.closest("font, b, strong, i, em, u");
-    if (!temFormatacao) return;
+    const bloco = parent.closest(".bloco");
+    if (!bloco) return;
 
-    // 🔥 só quando está no fim
-    if (selection.anchorOffset !== node.length) return;
+    // 🔥 verificar se está dentro de formatação
+    const formatado = parent.closest("font, b, strong, i, em, u, span");
+    if (!formatado) return;
 
-    // 🔥 RESET COMPLETO DO ESTADO
-    document.execCommand("removeFormat");
+    // ==========================
+    // 🔥 DIVIDIR FORMATAÇÃO
+    // ==========================
 
+    e.preventDefault();
+
+    // 🔥 criar nó limpo
+    const textoNovo = document.createTextNode(e.data || "");
+
+    // 🔥 inserir depois do bloco formatado COMPLETO
+	let topo = formatado;
+	while (topo.parentElement && topo.parentElement !== bloco) {
+		topo = topo.parentElement;
+	}
+
+	// 🔥 encontrar o <p>
+	let p = topo.closest("p");
+
+	// fallback (segurança)
+	if (!p) {
+		p = bloco;
+	}
+
+	// 🔥 inserir DENTRO do <p>, não fora
+	p.insertBefore(textoNovo, topo.nextSibling);
+
+    // 🔥 mover cursor
+    const range = document.createRange();
+    range.setStart(textoNovo, textoNovo.length);
+    range.collapse(true);
+
+    selection.removeAllRanges();
+    selection.addRange(range);
 });
 
 function existeColisao(x, y, largura, altura, ignorarBloco = null) {
