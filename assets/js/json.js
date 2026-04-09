@@ -1038,6 +1038,26 @@ document.addEventListener("beforeinput", function(e) {
 
 	const bloco = parent.closest(".bloco");
 	if (!bloco) return;
+	
+	// ==========================
+	// 🔥 CORREÇÃO PARA LISTAS (ul / ol)
+	// ==========================
+	const lista = parent.closest("ol, ul");
+
+	if (lista) {
+		const li = lista.querySelector("li:last-child");
+
+		if (li) {
+			const range = document.createRange();
+			range.selectNodeContents(li);
+			range.collapse(false);
+
+			selection.removeAllRanges();
+			selection.addRange(range);
+		}
+
+		return; // 🔥 IMPORTANTÍSSIMO: sai daqui
+	}
 
 	// 🔥 verificar se está dentro de formatação
 	const formatado = parent.closest("font, b, strong, i, em, u, span");
