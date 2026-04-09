@@ -1068,9 +1068,6 @@ document.addEventListener("beforeinput", function(e) {
 	// 🔥 inserir no ponto correto usando Range
 	const range = selection.getRangeAt(0);
 
-	// 🔥 encontrar o <p>
-	const p = topo.closest("p");
-
 	// 🔥 se o topo já for filho direto do <p>, usa o topo
 	if (topo.parentElement === p) {
 		range.setStartAfter(topo);
