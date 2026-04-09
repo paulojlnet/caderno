@@ -1016,6 +1016,30 @@ document.addEventListener("keydown", function(e) {
     }
 });
 
+document.addEventListener("input", function(e) {
+
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+    if (!selection.isCollapsed) return;
+
+    const node = selection.anchorNode;
+    if (!node || node.nodeType !== 3) return;
+
+    const parent = node.parentElement;
+    if (!parent) return;
+
+    // 🔥 só atuar se estiver dentro de formatação
+    const temFormatacao = parent.closest("font, b, strong, i, em, u");
+    if (!temFormatacao) return;
+
+    // 🔥 só quando está no fim
+    if (selection.anchorOffset !== node.length) return;
+
+    // 🔥 RESET COMPLETO DO ESTADO
+    document.execCommand("removeFormat");
+
+});
+
 function existeColisao(x, y, largura, altura, ignorarBloco = null) {
 
     const blocos = folha.querySelectorAll(".bloco");
@@ -1066,49 +1090,4 @@ document.querySelectorAll("#palette-bg span").forEach(el => {
 
         document.getElementById("palette-bg").classList.add("hidden");
     });
-});
-
-document.addEventListener("keydown", function(e) {
-
-    if (e.ctrlKey || e.metaKey) return;
-
-    const selection = window.getSelection();
-    if (!selection.rangeCount) return;
-    if (!selection.isCollapsed) return;
-
-    const node = selection.anchorNode;
-    if (!node || node.nodeType !== 3) return;
-
-    // só no fim do texto
-    if (selection.anchorOffset !== node.length) return;
-
-    let parent = node.parentElement;
-    if (!parent) return;
-
-    // 🔥 PROCURAR <font>
-    while (parent && parent !== document.body) {
-
-        if (parent.tagName === "FONT") {
-
-            const range = selection.getRangeAt(0);
-
-            // criar nó fora do <font>
-            const textNode = document.createTextNode("");
-
-            parent.parentNode.insertBefore(textNode, parent.nextSibling);
-
-            // mover cursor
-            const newRange = document.createRange();
-            newRange.setStart(textNode, 0);
-            newRange.collapse(true);
-
-            selection.removeAllRanges();
-            selection.addRange(newRange);
-
-            return;
-        }
-
-        parent = parent.parentElement;
-    }
-
 });
