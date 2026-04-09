@@ -819,7 +819,6 @@ document.addEventListener("click", function(e) {
 
 	if (btn) {
 
-		// 🔥 se NÃO for botão de cor → fechar paletas
 		if (!btn.closest("#btn-text-color") && !btn.closest("#btn-bg-color")) {
 			document.getElementById("palette-text").classList.add("hidden");
 			document.getElementById("palette-bg").classList.add("hidden");
@@ -829,6 +828,9 @@ document.addEventListener("click", function(e) {
 
 		if (cmd) {
 			document.execCommand(cmd, false, null);
+
+			// 🔥 AQUI (CRÍTICO)
+			atualizarToolbarEstado();
 		}
 
 		return;
@@ -856,18 +858,10 @@ document.addEventListener("click", function(e) {
 document.addEventListener("selectionchange", () => {
 
     const selection = window.getSelection();
-
     if (!selection.rangeCount) return;
 
     const range = selection.getRangeAt(0);
 
-    // ❌ nada selecionado
-    if (selection.isCollapsed) {
-        esconderToolbar();
-        return;
-    }
-
-    // 🔥 obter nó correto
     const node = selection.anchorNode;
     if (!node) return;
 
@@ -881,8 +875,32 @@ document.addEventListener("selectionchange", () => {
         return;
     }
 
-    mostrarToolbar(range);
-	atualizarToolbarEstado();
+    // 🎯 CASO 1: TEXTO SELECIONADO
+    if (!selection.isCollapsed) {
+        mostrarToolbar(range);
+        atualizarToolbarEstado();
+        return;
+    }
+
+    // 🎯 CASO 2: APENAS CURSOR (SEM SELEÇÃO)
+    esconderToolbar();
+
+    // 🔥 CORREÇÃO DE HERANÇA DE FORMATAÇÃO
+
+    if (node.nodeType !== 3) return;
+
+    // cursor no fim do texto
+    if (selection.anchorOffset !== node.length) return;
+
+    const parent = node.parentElement;
+    if (!parent) return;
+
+    const tagsFormatadas = ["STRONG", "B", "U", "I"];
+
+    if (tagsFormatadas.includes(parent.tagName)) {
+        document.execCommand("removeFormat");
+    }
+
 });
 
 
@@ -1002,6 +1020,50 @@ document.addEventListener("keydown", function(e) {
         esconderDeletePopup();
         return;
     }
+});
+
+document.addEventListener("keydown", function(e) {
+
+    if (e.ctrlKey || e.metaKey) return;
+
+    const selection = window.getSelection();
+    if (!selection.rangeCount) return;
+    if (!selection.isCollapsed) return;
+
+    const node = selection.anchorNode;
+    if (!node || node.nodeType !== 3) return;
+
+    // só no fim da palavra
+    if (selection.anchorOffset !== node.length) return;
+
+    let parent = node.parentElement;
+    if (!parent) return;
+
+    // 🔥 subir até encontrar span com estilos
+    while (parent && parent !== document.body) {
+
+        if (parent.tagName === "SPAN" && parent.style.backgroundColor) {
+
+            // 🔥 sair do span de fundo
+            const range = selection.getRangeAt(0);
+
+            const textNode = document.createTextNode("");
+
+            parent.parentNode.insertBefore(textNode, parent.nextSibling);
+
+            const newRange = document.createRange();
+            newRange.setStart(textNode, 0);
+            newRange.collapse(true);
+
+            selection.removeAllRanges();
+            selection.addRange(newRange);
+
+            break;
+        }
+
+        parent = parent.parentElement;
+    }
+
 });
 
 function existeColisao(x, y, largura, altura, ignorarBloco = null) {
