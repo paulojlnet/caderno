@@ -1017,8 +1017,9 @@ document.addEventListener("keydown", function(e) {
 });
 
 document.addEventListener("beforeinput", function(e) {
-	// 🔥 só atuar quando é escrita normal
-	if (e.inputType !== "insertText") return;
+
+    // 🔥 só texto normal
+    if (e.inputType !== "insertText") return;
 
     const selection = window.getSelection();
     if (!selection.rangeCount) return;
@@ -1027,135 +1028,80 @@ document.addEventListener("beforeinput", function(e) {
     const node = selection.anchorNode;
     if (!node || node.nodeType !== 3) return;
 
-    const offset = selection.anchorOffset;
-
-	// 🔥 só quando está no fim
-	if (offset !== node.length) return;
-
-	// 🔥 só texto normal
-	if (e.inputType !== "insertText") return;
-
-	const parent = node.parentElement;
-	if (!parent) return;
-
-	const bloco = parent.closest(".bloco");
-	if (!bloco) return;
-
-// ==========================
-// 🔥 FIX DEFINITIVO PARA LISTAS
-// ==========================
-const li = parent.closest("li");
-
-if (li) {
-    // 🔥 só atuar no fim do texto
+    // 🔥 só no fim do texto
     if (selection.anchorOffset !== node.length) return;
 
-    // 🔥 só para texto normal
-    if (e.inputType !== "insertText") return;
+    const parent = node.parentElement;
+    if (!parent) return;
+
+    const bloco = parent.closest(".bloco");
+    if (!bloco) return;
+
+    // ==========================
+    // 🔥 LISTAS (ÚNICO BLOCO)
+    // ==========================
+    const li = parent.closest("li");
+
+    if (li) {
+        const texto = e.data ?? "";
+        if (!texto) return;
+
+        e.preventDefault();
+
+        const textNode = document.createTextNode(texto);
+        li.appendChild(textNode);
+
+        const range = document.createRange();
+        range.setStart(textNode, textNode.length);
+        range.collapse(true);
+
+        selection.removeAllRanges();
+        selection.addRange(range);
+
+        return;
+    }
+
+    // ==========================
+    // 🔥 TEXTO NORMAL
+    // ==========================
+
+    const formatado = parent.closest("font, b, strong, i, em, u, span");
+    if (!formatado) return;
 
     const texto = e.data ?? "";
     if (!texto) return;
 
     e.preventDefault();
 
-    // 🔥 inserir texto LIMPO fora da formatação
-    const textNode = document.createTextNode(texto);
-    li.appendChild(textNode);
+    const textoNovo = document.createTextNode(texto);
 
-    // 🔥 posicionar cursor
-    const range = document.createRange();
-    range.setStart(textNode, textNode.length);
+    let topo = formatado;
+    while (topo.parentElement && topo.parentElement !== bloco) {
+        topo = topo.parentElement;
+    }
+
+    let p = topo.closest("p");
+    if (!p) p = bloco;
+
+    const range = selection.getRangeAt(0);
+
+    // 🔥 sair completamente da formatação
+    range.setStartAfter(topo);
+
+    // 🔥 garantir que fica dentro do <p>
+    if (!p.contains(range.startContainer)) {
+        range.setStart(p, p.childNodes.length);
+    }
+
+    range.collapse(true);
+    range.insertNode(textoNovo);
+
+    // 🔥 mover cursor
+    range.setStartAfter(textoNovo);
     range.collapse(true);
 
     selection.removeAllRanges();
     selection.addRange(range);
-
-    return; // 🔥 MUITO IMPORTANTE
-}
-	
-	// ==========================
-	// 🔥 CORREÇÃO PARA LISTAS (ul / ol)
-	// ==========================
-	
-	const lista = parent.closest("ol, ul");
-
-	if (lista) {
-		const li = lista.querySelector("li:last-child");
-
-		if (li) {
-			const range = document.createRange();
-			range.selectNodeContents(li);
-			range.collapse(false);
-
-			selection.removeAllRanges();
-			selection.addRange(range);
-		}
-
-		return; // 🔥 IMPORTANTÍSSIMO: sai daqui
-	}
-
-	// 🔥 verificar se está dentro de formatação
-	const formatado = parent.closest("font, b, strong, i, em, u, span");
-	if (!formatado) return;
-
-	const texto = e.data ?? "";
-	if (!texto) return;
-
-	e.preventDefault();
-
-	// 🔥 criar nó limpo
-	const textoNovo = document.createTextNode(texto);
-
-    // 🔥 inserir depois do bloco formatado COMPLETO
-	let topo = formatado;
-	while (topo.parentElement && topo.parentElement !== bloco) {
-		topo = topo.parentElement;
-	}
-
-	// 🔥 encontrar o <p>
-	let p = topo.closest("p");
-
-	// fallback (segurança)
-	if (!p) {
-		p = bloco;
-	}
-
-	// 🔥 inserir no ponto correto usando Range
-	const range = selection.getRangeAt(0);
-
-	// 🔥 sair SEMPRE do topo da formatação
-	const li = parent.closest("li");
-
-	if (li) {
-		// 🔥 recriar range LIMPO dentro do <li>
-		const novoRange = document.createRange();
-		novoRange.setStart(li, li.childNodes.length);
-		novoRange.collapse(true);
-
-		selection.removeAllRanges();
-		selection.addRange(novoRange);
-
-	} else {
-		// 🔥 comportamento normal fora de listas
-		range.setStartAfter(topo);
-	}
-
-	// 🔥 CORREÇÃO CRÍTICA: garantir que não saiu do <p>
-	if (!p.contains(range.startContainer)) {
-		range.setStart(p, p.childNodes.length);
-	}
-
-	range.collapse(true);
-
-	// inserir texto limpo
-	range.insertNode(textoNovo);
-
-	// 🔥 mover cursor para depois do texto
-	range.setStartAfter(textoNovo);
-	range.collapse(true);
-
-	selection.removeAllRanges();
-	selection.addRange(range);
 });
 
 function existeColisao(x, y, largura, altura, ignorarBloco = null) {
