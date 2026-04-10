@@ -41,7 +41,7 @@ $isAutor = ($_SESSION['autor'] ?? '') === 'sim';
 
         <!-- Conteúdo principal -->
         <main id="content">
-            <?php include 'views/caderno.php'; ?>
+            <?php include 'views/meus_cadernos.php'; ?>
         </main>
 
         <!-- Overlay -->

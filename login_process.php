@@ -1,5 +1,9 @@
 <?php
 session_start();
+// 🔥 limpar sessão antiga
+session_unset();
+session_destroy();
+session_start();
 
 $file = __DIR__ . "/data/users/users.json";
 
@@ -15,6 +19,7 @@ foreach ($data['users'] as $user) {
 
         $_SESSION['user'] = $user;
         $_SESSION['userId'] = $user['id'];
+		$_SESSION['grupo'] = $user['grupo'];
 
         // 🔥 redirecionamento simples (para já)
         switch ($user['grupo']) {
