@@ -378,7 +378,7 @@ function formatarData(dataISO) {
 }
 
 function getCaminhoPaginaNumero(pagina) {
-    return "data/cadernos/" + window.anoLetivo + "/" + window.userId + "/pagina_" + pagina + ".json";
+    return "data/cadernos/" + window.anoLetivo + "/" + window.userID + "/pagina_" + pagina + ".json";
 }
 
 function criarMiniatura(pagina, container) {
