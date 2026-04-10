@@ -859,3 +859,31 @@ function initMenu() {
     // 🔥 tornar global (para usar nas miniaturas)
     window.fecharMenu = fecharMenuLocal;
 }
+
+// Criar e carregar cadernos
+
+function criarCaderno() {
+    fetch("/api/criar_caderno.php", {
+        method: "POST",
+        body: JSON.stringify({
+            titulo: "Novo caderno"
+        })
+    })
+    .then(() => carregarCadernos());
+}
+
+function carregarCadernos() {
+    fetch("/api/listar_cadernos.php")
+        .then(r => r.json())
+        .then(cadernos => {
+
+            const div = document.getElementById("lista-cadernos");
+            if (!div) return; // 🔥 importante para não quebrar outras páginas
+
+            div.innerHTML = "";
+
+            cadernos.forEach(c => {
+                div.innerHTML += `<p>${c.titulo} (${c.id})</p>`;
+            });
+        });
+}
