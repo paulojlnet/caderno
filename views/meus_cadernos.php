@@ -8,10 +8,10 @@
 
 </div>
 
-<script src="/assets/js/app.js"></script>
-
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-    carregarCadernos();
+    if (typeof carregarCadernos === "function") {
+        carregarCadernos();
+    }
 });
 </script>
