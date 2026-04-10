@@ -10,10 +10,11 @@ $letivo = $_SESSION['letivo'];
 $dados = json_decode(file_get_contents("php://input"), true);
 
 // 🔥 garantir pasta
-$dir = __DIR__ . "/../data/cadernos/$letivo/";
+$baseDir = __DIR__ . "/../data/cadernos/" . $letivo . "/";
+$path = $baseDir . "professores/" . $_SESSION['userID'] . "/" . $id . "/";
 
-if (!is_dir($dir)) {
-    mkdir($dir, 0777, true);
+if (!is_dir($path)) {
+    mkdir($path, 0777, true);
 }
 
 $file = $dir . "cadernos.json";
@@ -40,9 +41,6 @@ $lista = json_decode(file_get_contents($file), true);
 $lista[] = $caderno;
 
 file_put_contents($file, json_encode($lista, JSON_PRETTY_PRINT), LOCK_EX);
-
-// 🔥 criar pasta do professor
-$path = __DIR__ . "/../data/cadernos/$letivo/professores/{$_SESSION['userID']}/$id/";
 
 mkdir($path, 0777, true);
 
