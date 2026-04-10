@@ -241,13 +241,19 @@ function irParaPagina(p) {
     renderPaginas();
 }
 
-document.getElementById("btn-prev").onclick = () => {
-    irParaPagina(paginaAtual - 1);
-};
+const btnPrev = document.getElementById("btn-prev");
+if (btnPrev) {
+    btnPrev.onclick = () => {
+        irParaPagina(paginaAtual - 1);
+    };
+}
 
-document.getElementById("btn-next").onclick = () => {
-    irParaPagina(paginaAtual + 1);
-};
+const btnNext = document.getElementById("btn-next");
+if (btnNext) {
+    btnNext.onclick = () => {
+        irParaPagina(paginaAtual + 1);
+    };
+}
 
 function criarFolhaMiniatura(dados) {
 
@@ -860,30 +866,49 @@ function initMenu() {
     window.fecharMenu = fecharMenuLocal;
 }
 
-// Criar e carregar cadernos
+// ===============================
+// 📚 CADERNOS
+// ===============================
 
 function criarCaderno() {
-    fetch("/api/criar_caderno.php", {
+    fetch("api/criar_caderno.php", {
         method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
         body: JSON.stringify({
             titulo: "Novo caderno"
         })
     })
-    .then(() => carregarCadernos());
+    .then(r => r.text())
+    .then(res => {
+        console.log("Resposta:", res);
+        carregarCadernos();
+    })
+    .catch(err => console.error(err));
 }
 
 function carregarCadernos() {
-    fetch("/api/listar_cadernos.php")
+    const container = document.getElementById("lista-cadernos");
+    if (!container) return;
+
+    fetch("api/listar_cadernos.php")
         .then(r => r.json())
         .then(cadernos => {
 
-            const div = document.getElementById("lista-cadernos");
-            if (!div) return; // 🔥 importante para não quebrar outras páginas
-
-            div.innerHTML = "";
+            container.innerHTML = "";
 
             cadernos.forEach(c => {
-                div.innerHTML += `<p>${c.titulo} (${c.id})</p>`;
+
+                const div = document.createElement("div");
+                div.className = "caderno-item";
+
+                div.innerHTML = `
+                    <strong>${c.titulo}</strong><br>
+                    ${c.disciplina || ""}
+                `;
+
+                container.appendChild(div);
             });
         });
 }

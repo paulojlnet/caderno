@@ -958,15 +958,21 @@ function atualizarToolbarEstado() {
     });
 }
 
-document.getElementById("delete-ok").onclick = () => {
-    if (blocoParaApagar) {
-        blocoParaApagar.remove();
-        guardarPagina();
-    }
-    esconderDeletePopup();
-};
+const deleteOk = document.getElementById("delete-ok");
+if (deleteOk) {
+    deleteOk.onclick = () => {
+        if (blocoParaApagar) {
+            blocoParaApagar.remove();
+            guardarPagina();
+        }
+        esconderDeletePopup();
+    };
+}
 
-document.getElementById("delete-cancel").onclick = esconderDeletePopup;
+const deleteCancel = document.getElementById("delete-cancel");
+if (deleteCancel) {
+    deleteCancel.onclick = esconderDeletePopup;
+}
 
 function esconderDeletePopup() {
     const popup = document.getElementById("delete-popup");
