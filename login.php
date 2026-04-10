@@ -3,7 +3,7 @@ session_start();
 
 // já logado → ir para app
 if (isset($_SESSION['user'])) {
-    header("Location: index.php");
+    header("Location: /views/meus_cadernos.php");
     exit;
 }
 ?>
