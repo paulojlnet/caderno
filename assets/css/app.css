@@ -577,8 +577,8 @@ html, body {
     left: 50%;
     transform: translate(-50%, -50%);
 
-    width: 420px;
-    max-width: 90vw; /* 🔥 evita sair do ecrã no mobile */
+	width: 750px;
+	max-width: 95vw;
 
     background: #ffffff;
     border-radius: 12px;
@@ -1576,4 +1576,252 @@ html, body {
 #toolbar-global button.ativo {
     background: #e0e0e0;
     border-color: #999;
+}
+
+/* ===== MINIATURAS DE CADERNOS ===== */
+
+.moleskine-wrapper {
+    display: block;
+    cursor: pointer;
+}
+
+.moleskine-notebook {
+    width: 175px;
+    height: 250px;
+    position: relative;
+    border-radius: 5px 15px 15px 5px;
+    transform-origin: left center;
+    transition: 0.4s ease-in-out;
+    perspective: 800px;
+}
+
+.moleskine-notebook:hover {
+    transform: rotateZ(-10deg);
+}
+
+.moleskine-notebook:hover .notebook-cover {
+    transform: rotateY(-50deg);
+    box-shadow: 20px 10px 50px rgba(0,0,0,0.2);
+}
+
+/* ===== CAPA ===== */
+
+.notebook-cover {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px 15px 15px 5px;
+    transform-origin: left center;
+    transform-style: preserve-3d;
+    transition: 0.5s;
+    z-index: 10;
+}
+
+/* cores (mantive as principais, podes acrescentar mais depois) */
+
+.notebook-cover.blue { background: #2e95aa; }
+.notebook-cover.green { background: #abc3b5; }
+.notebook-cover.red { background: #cc4b48; }
+.notebook-cover.teal { background: #006666; }
+.notebook-cover.violet { background: #ee82ee; }
+.notebook-cover.orange { background: #ff8f66; }
+.notebook-cover.gray { background: #808080; }
+.notebook-cover.black { background: #000; }
+
+/* ===== LOGO ===== */
+
+.notebook-logo {
+    position: absolute;
+    top: 10px;
+    left: 5px;
+    height: 15px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.notebook-logo img {
+    width: 12px;
+}
+
+.notebook-logo span {
+    color: #fff;
+    font-size: 10px;
+    font-weight: bold;
+    text-shadow: 1px 1px 3px rgba(0,0,0,1);
+}
+
+/* ===== TÍTULO ===== */
+
+.notebook-skin {
+    position: absolute;
+    top: 80px;
+    left: 0;
+    width: 100%;
+	height: 70px;
+    padding: 0 12px;
+    background: #e8e8e0;
+    font-size: 14px;
+    color: #222;
+    box-shadow: 0 1px 1px rgba(0,0,0,0.2);
+    display: flex;
+    align-items: center;
+    justify-content: flex-start;
+}
+
+.notebook-skin::before {
+    content: "";
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 15px;
+    background: #cddc39;
+}
+
+/* ===== ANO LETIVO ===== */
+
+.notebook-fundo {
+    position: absolute;
+    bottom: 15px;
+    right: 40px;
+    color: #FFD54E;
+    font-size: 10px;
+    letter-spacing: -1px;
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.8);
+}
+
+/* ===== PÁGINA INTERIOR ===== */
+
+.notebook-page {
+    position: absolute;
+    width: 155px;
+    height: 100%;
+    background: #fbfae8;
+    border-radius: 5px 16px 16px 5px;
+    overflow: hidden;
+}
+
+/* estilos de página */
+
+.notebook-page.ruled {
+    background: linear-gradient(to bottom, #fbfae8 9px, #e4e4e4 1px);
+    background-size: 100% 10px;
+}
+
+.notebook-page.squared {
+    background-image:
+        linear-gradient(#e4e4e4 1px, transparent 1px),
+        linear-gradient(90deg, #e4e4e4 1px, transparent 1px);
+    background-size: 10px 10px;
+}
+
+.notebook-page.dotted {
+    background:
+        linear-gradient(90deg, #fbfae8 10px, transparent 1%) center,
+        linear-gradient(#fbfae8 10px, transparent 1%) center,
+        #999;
+    background-size: 11px 11px;
+}
+
+#lista-cadernos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 20px;
+    padding: 20px;
+}
+
+.caderno-item {
+    width: 200px;
+}
+
+.caderno-linha {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px;
+    background: rgba(255,255,255,0.05);
+    margin-bottom: 5px;
+    cursor: pointer;
+}
+
+.caderno-linha:hover {
+    background: rgba(255,255,255,0.1);
+}
+
+.caderno-linha span {
+    flex: 1;
+}
+
+.caderno-linha button {
+    background: transparent;
+    border: none;
+    color: #ff6b6b;
+    cursor: pointer;
+}
+
+.notebook-cover {
+    overflow: hidden;
+}
+
+.form-caderno {
+    display: flex;
+    gap: 40px;
+}
+
+/* coluna esquerda */
+.form-col-esq {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* coluna direita */
+.form-col-dir {
+    width: 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+/* preview centrado */
+#cad-preview {
+    display: flex;
+    justify-content: center;
+}
+
+#cad-titulo,
+#cad-disciplina {
+    width: 100%;
+    font-size: 16px;
+    padding: 10px;
+}
+
+#cad-ano {
+    width: 80px;
+}
+
+#cad-turmas {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 8px;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+#cad-turmas label {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap; /* 🔥 evita quebra */
+}
+
+#cad-cor span {
+    width: 20px;
+    height: 20px;
+    border-radius: 4px;
+    cursor: pointer;
+    border: 1px solid #999;
 }
