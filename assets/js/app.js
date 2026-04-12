@@ -9,6 +9,28 @@ let mudouPagina = false;
 let pageIndicatorTimeout;
 const urlParams = new URLSearchParams(window.location.search);
 window.cadernoID = urlParams.get("caderno");
+window.formCadernoAberto = false;
+
+function getCorFundo(cor) {
+
+    const cores = {
+        blue: "rgba(46,149,170,0.15)",
+        green: "rgba(171,195,181,0.2)",
+        red: "rgba(204,75,72,0.15)",
+        teal: "rgba(0,102,102,0.15)",
+        violet: "rgba(238,130,238,0.15)",
+        orange: "rgba(255,143,102,0.2)"
+    };
+
+    return cores[cor] || "#F5DEB3";
+}
+
+function getCorTexto(cor) {
+
+    const coresEscuras = ["blue", "teal", "red", "darkred", "black", "mdnightblue"];
+
+    return coresEscuras.includes(cor) ? "#fff" : "#000";
+}
 
 function mostrarIndicadorPagina() {
 
@@ -448,7 +470,13 @@ function criarMiniatura(pagina, container) {
         return thumb;
 }
 
-function abrirFormularioCaderno() {
+function abrirFormularioCaderno(dados = null) {
+	
+	const menu = document.getElementById("menu");
+	const overlay = document.getElementById("menu-overlay");
+
+	menu?.classList.remove("open");
+	overlay?.classList.remove("open");
 
     const form = document.createElement("div");
     form.className = "form-sumario";
@@ -459,7 +487,8 @@ function abrirFormularioCaderno() {
 			<div class="form-col-esq">
 
 				<label>Título</label>
-				<input type="text" id="cad-titulo" placeholder="Novo caderno">
+				<input type="text" id="cad-titulo" placeholder="Novo caderno" maxlength="50" autocomplete="off">
+				<div class="cad-titulo-info">(máx. 50 caracteres)</div>
 
 				<label>Disciplina</label>
 				<select id="cad-disciplina"></select>
@@ -483,36 +512,100 @@ function abrirFormularioCaderno() {
 		</div>
 
 		<div class="botoes">
-			<button id="cad-ok">Criar</button>
-			<button id="cad-cancel">Cancelar</button>
+			<button id="cad-ok" type="button">Criar</button>
+			<button id="cad-cancel" type="button">Cancelar</button>
 		</div>
 	`;
 
     document.body.appendChild(form);
+	
+	window.cadernoEditando = dados?.id || null;
+	
+	window.formCadernoAberto = true;
+	
+	window.corSelecionada = "blue";	
 
-    preencherAnos();
-    preencherTurmas();
-    preencherCores();
-    atualizarPreview();
+	preencherAnos();
+	preencherTurmas();
+	preencherCores();
+	preencherDisciplinas();
+
+	if (dados) {
+
+		document.getElementById("cad-titulo").value = dados.titulo || "";
+
+		window.corSelecionada = dados.cor || "blue";
+
+		form.querySelector("#cad-ok").textContent = "Guardar";
+
+		setTimeout(() => {
+
+			document.getElementById("cad-disciplina").value = (dados.disciplina || "").toUpperCase();
+			document.getElementById("cad-ano").value = dados.ano || "";
+
+			document.querySelectorAll("#cad-cor span").forEach(el => {
+				el.style.outline = (el.dataset.cor === window.corSelecionada)
+					? "2px solid black"
+					: "none";
+			});
+
+			atualizarPreview(); // 🔥 agora já com disciplina correta
+
+		}, 100);
+	}	
+	
+	if (dados?.turmas) {
+		setTimeout(() => {
+			document.querySelectorAll("#cad-turmas input").forEach(el => {
+				if (dados.turmas.includes(el.value)) {
+					el.checked = true;
+				}
+			});
+		}, 50);
+	}
 
     // eventos
-    form.querySelector("#cad-cancel").onclick = () => form.remove();
+    form.querySelector("#cad-cancel").onclick = () => {
+		form.remove();
+		window.formCadernoAberto = false;
+	};
 
-    form.querySelector("#cad-ok").onclick = () => {
-        criarCadernoComDados();
-        form.remove();
-    };
+	form.querySelector("#cad-ok").onclick = () => {
 
-    form.querySelectorAll("input, select").forEach(el => {
-        el.addEventListener("input", atualizarPreview);
-    });
+		const ok = criarCadernoComDados();
+
+		if (ok) {
+			form.remove();
+			window.formCadernoAberto = false;
+		}
+	};
+
+	form.querySelectorAll("input").forEach(el => {
+		el.addEventListener("input", atualizarPreview);
+	});
+
+	form.querySelectorAll("select").forEach(el => {
+		el.addEventListener("change", atualizarPreview);
+	});
 }
 
 function preencherDisciplinas() {
     fetch("data/disciplinas.json")
         .then(r => r.json())
         .then(lista => {
+
             const select = document.getElementById("cad-disciplina");
+            if (!select) return;
+
+            select.innerHTML = ""; // limpar
+
+			const optDefault = document.createElement("option");
+			optDefault.value = "";
+			optDefault.textContent = "Selecionar";
+			optDefault.selected = true;
+			optDefault.disabled = true;
+
+			select.appendChild(optDefault);
 
             lista.forEach(d => {
                 const opt = document.createElement("option");
@@ -520,7 +613,8 @@ function preencherDisciplinas() {
                 opt.textContent = d.nome;
                 select.appendChild(opt);
             });
-        });
+        })
+        .catch(err => console.error("Erro disciplinas:", err));
 }
 
 function preencherAnos() {
@@ -528,6 +622,15 @@ function preencherAnos() {
         .then(r => r.json())
         .then(d => {
             const select = document.getElementById("cad-ano");
+			
+			const optDefault = document.createElement("option");
+			optDefault.value = "";
+			optDefault.textContent = "Selecionar";
+			optDefault.selected = true;
+			optDefault.disabled = true;
+
+			select.appendChild(optDefault);			
+			
             d.anos.forEach(a => {
                 const opt = document.createElement("option");
                 opt.value = a;
@@ -545,63 +648,76 @@ function preencherTurmas() {
 
             d.turmas.forEach(t => {
                 const label = document.createElement("label");
-                label.innerHTML = `
-                    <input type="checkbox" value="${t}"> ${t}
-                `;
+				label.innerHTML = `
+					${t} <input type="checkbox" value="${t}">
+				`;
                 container.appendChild(label);
             });
         });
 }
 
 function preencherCores() {
-    const cores = ["blue","green","red","teal","violet","orange"];
 
-	const cores = {
-		blue: "#2e95aa",
-		green: "#abc3b5",
-		red: "#cc4b48",
-		teal: "#006666",
-		violet: "#ee82ee",
-		orange: "#ff8f66"
-	};
+    const container = document.getElementById("cad-cor");
+    if (!container) return;
 
-	for (let nome in cores) {
+    container.innerHTML = "";
 
-		const el = document.createElement("span");
+    const coresCaderno = {
+        blue: "#2e95aa",
+        green: "#abc3b5",
+        red: "#cc4b48",
+        teal: "#006666",
+        violet: "#ee82ee",
+        orange: "#ff8f66"
+    };
 
-		el.style.background = cores[nome]; // 🔥 agora aparece cor
-		el.dataset.cor = nome;
+    for (let nome in coresCaderno) {
+		
+        const el = document.createElement("span");
 
-		el.onclick = () => {
+        el.style.background = coresCaderno[nome];
+        el.dataset.cor = nome;
 
-			window.corSelecionada = nome;
+        el.onclick = () => {
 
-			// 🔥 remover seleção anterior
-			document.querySelectorAll("#cad-cor span").forEach(s => {
-				s.style.outline = "none";
-			});
+            window.corSelecionada = nome;
 
-			// 🔥 destacar selecionado
+            // remover seleção anterior
+            document.querySelectorAll("#cad-cor span").forEach(s => {
+                s.style.outline = "none";
+            });
+
+            // destacar selecionado
+            el.style.outline = "2px solid black";
+
+            atualizarPreview();
+        };
+		
+		if (nome === "blue") {
 			el.style.outline = "2px solid black";
+		}
 
-			atualizarPreview();
-		};
-
-		container.appendChild(el);
-	}
+        container.appendChild(el);
+    }
 }
 
 function atualizarPreview() {
 
     const titulo = document.getElementById("cad-titulo")?.value || "Novo caderno";
     const cor = window.corSelecionada || "blue";
+    const disciplina = (document.getElementById("cad-disciplina")?.value || "").toUpperCase();
 
     const preview = document.getElementById("cad-preview");
+    const corTexto = getCorTexto(cor);
 
     preview.innerHTML = `
         <div class="moleskine-wrapper">
             <div class="moleskine-notebook">
                 <div class="notebook-cover ${cor}">
+                    <div class="notebook-disciplina" style="color:${corTexto}">
+                        ${disciplina}
+                    </div>				
                     <div class="notebook-skin">${titulo}</div>
                 </div>
                 <div class="notebook-page ruled"></div>
@@ -612,27 +728,63 @@ function atualizarPreview() {
 
 function criarCadernoComDados() {
 
-    const titulo = document.getElementById("cad-titulo").value;
+    const titulo = document.getElementById("cad-titulo").value.trim();
     const disciplina = document.getElementById("cad-disciplina").value;
     const ano = document.getElementById("cad-ano").value;
 
     const turmas = [...document.querySelectorAll("#cad-turmas input:checked")]
         .map(el => el.value);
 
-    fetch("api/criar_caderno.php", {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            titulo,
-            disciplina,
-            ano,
-            turmas,
-            cor: window.corSelecionada || "blue"
-        })
-    })
-    .then(() => carregarCadernos());
+    if (!titulo) {
+        alert("Indique o título");
+        return false;
+    }
+
+    if (!disciplina) {
+        alert("Selecione a disciplina");
+        return false;
+    }
+
+    if (!ano) {
+        alert("Selecione o ano");
+        return false;
+    }
+
+    if (turmas.length === 0) {
+        alert("Selecione pelo menos uma turma");
+        return false;
+    }
+
+const url = window.cadernoEditando
+    ? "api/editar_caderno.php"
+    : "api/criar_caderno.php";
+
+	const payload = {
+		titulo,
+		disciplina,
+		ano,
+		turmas,
+		cor: window.corSelecionada || "blue"
+	};
+
+	// 🔥 se for edição, enviar id
+	if (window.cadernoEditando) {
+		payload.id = window.cadernoEditando;
+	}
+
+	fetch(url, {
+		method: "POST",
+		headers: {
+			"Content-Type": "application/json"
+		},
+		body: JSON.stringify(payload)
+	})
+	.then(() => {
+		window.cadernoEditando = null;
+		carregarCadernos();
+	});
+
+    return true;
 }
 
 function abrirFormularioSumario() {
@@ -1037,10 +1189,13 @@ function initMenu() {
         overlay.classList.remove("open");
     }
 
-    menuBtn.onclick = () => {
-        menu.classList.add("open");
-        overlay.classList.add("open");
-    };
+	menuBtn.onclick = () => {
+
+		if (window.formCadernoAberto) return;
+
+		menu.classList.add("open");
+		overlay.classList.add("open");
+	};
 
     closeBtn.onclick = fecharMenuLocal;
     overlay.onclick = fecharMenuLocal;
@@ -1109,17 +1264,33 @@ function carregarCadernos() {
 			// 🔵 MENU (lista simples)
 			if (containerMenu) {
 				const divMenu = document.createElement("div");
-				divMenu.className = "caderno-linha";
+				divMenu.className = "caderno-menu-item";
+				
+				const corTexto = getCorTexto(c.cor || "blue");
 
 				divMenu.innerHTML = `
-					<span>${c.id}</span>
-					<button class="btn-delete">✕</button>
+					<div class="caderno-mini notebook-cover ${c.cor || "blue"}"></div>
+
+					<div class="caderno-info">
+						<div><strong>${c.titulo}</strong></div>
+						<div>Disciplina: ${(c.disciplina || "").toUpperCase()}</div>
+						<div class="notebook-disciplina" style="color:${corTexto}">
+							${(c.disciplina || "").toUpperCase()}
+						</div>						
+					</div>
+
+					<div class="caderno-acoes">
+						<button class="btn-editar">✎</button>
+						<button class="btn-delete">✕</button>
+					</div>
 				`;
 
-				divMenu.querySelector("span").onclick = () => {
+				// 🔥 abrir caderno
+				divMenu.querySelector(".caderno-info").onclick = () => {
 					window.location.href = "index.php?caderno=" + c.id;
 				};
 
+				// 🔥 apagar
 				divMenu.querySelector(".btn-delete").onclick = (e) => {
 					e.stopPropagation();
 
@@ -1129,17 +1300,27 @@ function carregarCadernos() {
 						.then(() => carregarCadernos());
 				};
 
+				// 🔥 editar
+				divMenu.querySelector(".btn-editar").onclick = (e) => {
+					e.stopPropagation();
+					abrirFormularioCaderno(c);
+				};
+
 				containerMenu.appendChild(divMenu);
 			}
 
 			// 🔵 PÁGINA PRINCIPAL (miniaturas)
 			if (containerGrid) {
 				const divGrid = document.createElement("div");
+				const corTexto = getCorTexto(c.cor || "blue");
 
 				divGrid.innerHTML = `
 					<div class="moleskine-wrapper">
 						<div class="moleskine-notebook">
-							<div class="notebook-cover blue">
+							<div class="notebook-cover ${c.cor || "blue"}">
+							<div class="notebook-disciplina" style="color:${corTexto}">
+								${(c.disciplina || "").toUpperCase()}
+							</div>							
 								<div class="notebook-skin">${c.titulo}</div>
 								<div class="notebook-fundo">${window.anoLetivo || ""}</div>
 							</div>
