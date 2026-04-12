@@ -14,15 +14,15 @@ window.formCadernoAberto = false;
 function getCorFundo(cor) {
 
     const cores = {
-        blue: "rgba(46,149,170,0.15)",
-        green: "rgba(171,195,181,0.2)",
-        red: "rgba(204,75,72,0.15)",
-        teal: "rgba(0,102,102,0.15)",
-        violet: "rgba(238,130,238,0.15)",
-        orange: "rgba(255,143,102,0.2)"
+        blue: "rgba(46,149,170,0.35)",
+        green: "rgba(171,195,181,0.7)",
+        red: "rgba(204,75,72,0.45)",
+        teal: "rgba(0,102,102,0.35)",
+        violet: "rgba(238,130,238,0.25)",
+        orange: "rgba(255,193,132,0.5)"
     };
 
-    return cores[cor] || "#F5DEB3";
+    return cores[cor] || "#F0EEC6";
 }
 
 function getCorTexto(cor) {
@@ -30,6 +30,36 @@ function getCorTexto(cor) {
     const coresEscuras = ["blue", "teal", "red", "darkred", "black", "mdnightblue"];
 
     return coresEscuras.includes(cor) ? "#fff" : "#000";
+}
+
+function aplicarFundoCaderno(cadernos) {
+
+    const app = document.querySelector(".app");
+
+    // 🔥 se não estiver num caderno → fundo default
+    if (!window.cadernoID) {
+        if (app) app.style.background = "#F0EEC6";
+        return;
+    }
+
+    const caderno = cadernos.find(c => c.id === window.cadernoID);
+
+    if (!caderno) return;
+
+    const cor = caderno.cor || "blue";
+
+    const cores = {
+        blue: "rgba(46,149,170,0.35)",
+        green: "rgba(171,195,181,0.7)",
+        red: "rgba(204,75,72,0.45)",
+        teal: "rgba(0,102,102,0.35)",
+        violet: "rgba(238,130,238,0.25)",
+        orange: "rgba(255,193,132,0.5)"
+    };
+
+    if (app) {
+        app.style.background = cores[cor] || "#F0EEC6";
+    }
 }
 
 function mostrarIndicadorPagina() {
@@ -1015,6 +1045,13 @@ function init() {
     const saved = parseInt(localStorage.getItem("paginaAtual"));
 
     initMenu();
+	
+    // 🔥 AQUI — aplicar cor do caderno
+    fetch("api/listar_cadernos.php")
+    .then(r => r.json())
+    .then(cadernos => {
+        aplicarFundoCaderno(cadernos);
+    });
     
     fetch("list_pages.php?caderno=" + cadernoID)
     .then(res => res.json())
@@ -1255,6 +1292,8 @@ function carregarCadernos() {
     fetch("api/listar_cadernos.php")
     .then(r => r.json())
     .then(cadernos => {
+		
+		aplicarFundoCaderno(cadernos);
 
 		if (containerGrid) containerGrid.innerHTML = "";
 		if (containerMenu) containerMenu.innerHTML = "";
@@ -1290,16 +1329,53 @@ function carregarCadernos() {
 					window.location.href = "index.php?caderno=" + c.id;
 				};
 
-				// 🔥 apagar
-				divMenu.querySelector(".btn-delete").onclick = (e) => {
+				divMenu.querySelector(".btn-delete").onclick = async (e) => {
 					e.stopPropagation();
+
+					// 🔥 verificar páginas (frontend)
+					const res = await fetch("list_pages.php?caderno=" + c.id);
+					const paginas = await res.json();
+
+					let temConteudo = false;
+
+					for (let p of paginas) {
+
+						const r = await fetch(`get_page.php?caderno=${c.id}&pagina=${p}`);
+						const dados = await r.json();
+
+						if (dados && dados.length > 0) {
+							temConteudo = true;
+							break;
+						}
+					}
+
+					if (temConteudo) {
+						alert("Este caderno contém páginas com conteúdo e não pode ser apagado.");
+						return;
+					}
 
 					if (!confirm("Apagar este caderno?")) return;
 
-					fetch("api/apagar_caderno.php?id=" + c.id)
-						.then(() => carregarCadernos());
-				};
+					// 🔥 delete com validação backend
+					const resp = await fetch("api/apagar_caderno.php?id=" + c.id);
+					const texto = await resp.text();
 
+					let resFinal;
+
+					try {
+						resFinal = JSON.parse(texto);
+					} catch {
+						resFinal = texto;
+					}
+
+					if (resFinal?.erro === "tem_conteudo") {
+						alert("Este caderno tem conteúdo e não pode ser apagado.");
+						return;
+					}
+
+					carregarCadernos();
+				};
+				
 				// 🔥 editar
 				divMenu.querySelector(".btn-editar").onclick = (e) => {
 					e.stopPropagation();

@@ -300,7 +300,7 @@ function guardarPagina() {
         });
     });
 
-    fetch("save.php?pagina=" + paginaAtual, {
+    fetch("save.php?caderno=" + cadernoID + "&pagina=" + paginaAtual, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -322,7 +322,7 @@ function guardarPagina() {
 
             // 🔥 CRIAR PRÓXIMA PÁGINA
             const criarProxima = (atualTem && !proxTem)
-                ? fetch("save.php?pagina=" + (paginaAtual + 1), {
+                ? fetch("save.php?caderno=" + cadernoID + "&pagina=" + (paginaAtual + 1), {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
                     body: JSON.stringify([])
@@ -334,7 +334,7 @@ function guardarPagina() {
             criarProxima.then(() => {
 
                 // 🔥 VERIFICAR REMOÇÃO
-                fetch("list_pages.php")
+                fetch("list_pages.php?caderno=" + cadernoID)
                 .then(res => res.json())
                 .then(paginas => {
 
@@ -365,7 +365,7 @@ function guardarPagina() {
                         // 🔥 REMOVER ÚLTIMA SE DUPLICADA VAZIA
                         if (ultimaVazia && penultimaVazia) {
 
-                            fetch("delete.php?pagina=" + ultima)
+                            fetch("delete.php?caderno=" + cadernoID + "&pagina=" + ultima)
                             .then(() => {
                                 renderPaginas();
                             });
