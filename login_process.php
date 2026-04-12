@@ -1,9 +1,5 @@
 <?php
 session_start();
-// 🔥 limpar sessão antiga
-session_unset();
-session_destroy();
-session_start();
 
 $file = __DIR__ . "/data/users/users.json";
 
@@ -17,30 +13,37 @@ foreach ($data['users'] as $user) {
     if ($user['username'] === $username &&
         password_verify($password, $user['password'])) {
 
-        $_SESSION['user'] = $user;
-        $_SESSION['userId'] = $user['id'];
-		$_SESSION['grupo'] = $user['grupo'];
+        // 🔥 limpar sessão antiga
+        session_unset();
+        session_regenerate_id(true);
 
-        // 🔥 redirecionamento simples (para já)
+        $_SESSION['user'] = $user;
+        $_SESSION['userID'] = $user['id'];
+        $_SESSION['grupo'] = $user['grupo'];
+
+        require_once __DIR__ . "/helpers.php";
+        $_SESSION['letivo'] = getAnoLetivo();
+
+        // 🔥 redirecionamento
         switch ($user['grupo']) {
 
-        case 'admin':
-            header("Location: admin/index.php");
-            break;
-    
-        case 'professor':
-            header("Location: index.php");
-            break;
-    
-        case 'aluno':
-            header("Location: index.php");
-            break;
-    
-        default:
-            header("Location: index.php");
-    }
-    
-    exit;
+            case 'admin':
+                header("Location: admin/index.php");
+                break;
+
+            case 'professor':
+                header("Location: index.php");
+                break;
+
+            case 'aluno':
+                header("Location: index.php");
+                break;
+
+            default:
+                header("Location: index.php");
+        }
+
+        exit;
     }
 }
 

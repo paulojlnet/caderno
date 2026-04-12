@@ -8,13 +8,19 @@ header("Expires: 0");
 $data = file_get_contents("php://input");
 
 // 🔥 caminho correto com base no utilizador
-require_once __DIR__ . "/helpers.php"; // ajusta se necessário
+require_once __DIR__ . "/helpers.php";
 
 $letivo = getAnoLetivo();
 
-$dir = __DIR__ . "/data/cadernos/" . $letivo . "/" . $_SESSION['userId'];
+$cadernoID = $_GET['caderno'] ?? null;
 
-// criar pasta se não existir
+if (!$cadernoID) {
+    die("Caderno não definido");
+}
+
+$baseDir = __DIR__ . "/data/cadernos/" . $letivo . "/";
+$dir = $baseDir . "professores/" . $_SESSION['userID'] . "/" . $cadernoID;
+
 if (!is_dir($dir)) {
     mkdir($dir, 0777, true);
 }

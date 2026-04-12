@@ -40,9 +40,15 @@ $isAutor = ($_SESSION['autor'] ?? '') === 'sim';
         <?php include 'views/header.php'; ?>
 
         <!-- Conteúdo principal -->
-        <main id="content">
-            <?php include 'views/meus_cadernos.php'; ?>
-        </main>
+		<main id="content">
+			<?php
+			if (isset($_GET['caderno']) && $_GET['caderno']) {
+				include 'views/caderno.php';
+			} else {
+				include 'views/meus_cadernos.php';
+			}
+			?>
+		</main>
 
         <!-- Overlay -->
         <div id="overlay" class="hidden"></div>

@@ -5,14 +5,16 @@ require_once __DIR__ . "/helpers.php"; // ajusta se necessário
 
 $letivo = getAnoLetivo();
 
-$dir = __DIR__ . "/data/cadernos/" . $letivo . "/" . $_SESSION['userId'];
+$cadernoID = $_GET['caderno'] ?? null;
 
-// 🔥 GARANTIR QUE A PASTA EXISTE (AQUI!)
-if (!is_dir($dir)) {
-    mkdir($dir, 0777, true);
+if (!$cadernoID) {
+    die("Caderno não definido");
 }
 
-$files = glob($dir . "/pagina_*.json");
+$baseDir = __DIR__ . "/data/cadernos/" . $letivo . "/";
+$dir = $baseDir . "professores/" . $_SESSION['userID'] . "/" . $cadernoID;
+
+$files = is_dir($dir) ? glob($dir . "/pagina_*.json") : [];
 
 $paginas = [];
 
