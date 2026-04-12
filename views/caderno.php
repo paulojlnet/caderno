@@ -27,7 +27,8 @@ $tipo = 'pautado';
         <div class="user-actions">
             <button id="btn-user-dados">Ver dados</button>
             <button id="btn-user-password">Alterar senha</button>
-            <a href="logout.php" id="btn-logout">Sair</a>
+			<button id="btn-fechar-caderno">Fechar caderno</button>
+            <a href="logout.php" id="btn-logout">Terminar Sessão</a>
         </div>
     </div>
 
@@ -156,10 +157,10 @@ $tipo = 'pautado';
 </div>
 
 <script>
-window.userId = "<?= $_SESSION['userId'] ?>";
+window.userID = "<?= $_SESSION['userID'] ?>";
 window.anoLetivo = "<?= getAnoLetivo() ?>";
 
 function getCaminhoPagina() {
-    return "data/cadernos/" + window.anoLetivo + "/" + window.userId + "/pagina_" + paginaAtual + ".json";
+    return "data/cadernos/" + window.anoLetivo + "/" + window.userID + "/pagina_" + paginaAtual + ".json";
 }
 </script>
