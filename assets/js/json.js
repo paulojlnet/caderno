@@ -283,9 +283,9 @@ function guardarPagina() {
             conteudoLimpo = clone.textContent.trim();
         }
 
-        if (!bloco.classList.contains("sumario")) {
-            if (!conteudoLimpo.replace(/\s/g, "")) return;
-        }
+		if (!conteudoLimpo || !conteudoLimpo.replace(/\s/g, "")) {
+			return;
+		}
 
         const posX = parseInt(bloco.style.left || 0);
         const posY = parseInt(bloco.style.top || 0);
@@ -299,6 +299,19 @@ function guardarPagina() {
             conteudo: clone.innerHTML
         });
     });
+
+	// 🔥 NÃO GUARDAR SE NÃO HÁ DADOS
+	if (dados.length === 0) {
+		// 🔥 guardar página vazia explicitamente
+		fetch("save.php?caderno=" + cadernoID + "&pagina=" + paginaAtual, {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify([])
+		});
+		return;
+	}
 
     fetch("save.php?caderno=" + cadernoID + "&pagina=" + paginaAtual, {
         method: "POST",

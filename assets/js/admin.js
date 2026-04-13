@@ -39,32 +39,32 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     // 🔥 TROCAR VIEWS
-    const items = document.querySelectorAll("#admin-nav .menu-item");
+	const items = document.querySelectorAll("#menu-content .menu-item");
 
-    items.forEach(item => {
+	items.forEach(item => {
 
-        item.onclick = () => {
+		item.onclick = () => {
 
-            const view = item.dataset.view;
+			const view = item.dataset.view;
 
-            // esconder todas
-            document.querySelectorAll(".admin-view").forEach(v => {
-                v.classList.add("hidden");
-            });
+			// esconder todas
+			document.querySelectorAll(".admin-view").forEach(v => {
+				v.classList.add("hidden");
+			});
 
-            // mostrar selecionada
-            const target = document.getElementById("view-" + view);
-            if (target) target.classList.remove("hidden");
+			// mostrar selecionada
+			const target = document.getElementById("view-" + view);
+			if (target) target.classList.remove("hidden");
 
-            // fechar menu
-            if (menu && overlay) {
-                menu.classList.remove("open");
-                overlay.classList.remove("open");
-            }
+			// fechar menu
+			if (menu && overlay) {
+				menu.classList.remove("open");
+				overlay.classList.remove("open");
+			}
 
-        };
+		};
 
-    });
+	});
     
     loadUsers();
 

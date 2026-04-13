@@ -8,7 +8,7 @@ let renderSumariosToken = 0;
 let mudouPagina = false;
 let pageIndicatorTimeout;
 const urlParams = new URLSearchParams(window.location.search);
-window.cadernoID = urlParams.get("caderno");
+//window.cadernoID = urlParams.get("caderno");
 window.formCadernoAberto = false;
 
 function getCorFundo(cor) {
@@ -436,7 +436,7 @@ function formatarData(dataISO) {
 }
 
 function getCaminhoPaginaNumero(pagina) {
-    return "save.php?caderno=" + cadernoID + "&pagina=" + pagina;
+    return "load.php?caderno=" + cadernoID + "&pagina=" + pagina;
 }
 
 function criarMiniatura(pagina, container) {
@@ -500,7 +500,7 @@ function criarMiniatura(pagina, container) {
         return thumb;
 }
 
-function abrirFormularioCaderno(dados = null) {
+function abrirFormularioCaderno(dados = null)
 	
 	const menu = document.getElementById("menu");
 	const overlay = document.getElementById("menu-overlay");
@@ -556,42 +556,65 @@ function abrirFormularioCaderno(dados = null) {
 	window.corSelecionada = "blue";	
 
 	preencherAnos();
-	preencherTurmas();
 	preencherCores();
 	preencherDisciplinas();
+	preencherTurmas();
 
 	if (dados) {
 
 		document.getElementById("cad-titulo").value = dados.titulo || "";
-
 		window.corSelecionada = dados.cor || "blue";
 
 		form.querySelector("#cad-ok").textContent = "Guardar";
 
 		setTimeout(() => {
 
-			document.getElementById("cad-disciplina").value = (dados.disciplina || "").toUpperCase();
-			document.getElementById("cad-ano").value = dados.ano || "";
+			// disciplina
+			const disc = document.getElementById("cad-disciplina");
+			if (disc) disc.value = (dados.disciplina || "").toUpperCase();
 
+			// ano
+			const ano = document.getElementById("cad-ano");
+			if (ano) ano.value = dados.ano || "";
+
+			// cor
 			document.querySelectorAll("#cad-cor span").forEach(el => {
 				el.style.outline = (el.dataset.cor === window.corSelecionada)
 					? "2px solid black"
 					: "none";
 			});
 
-			atualizarPreview(); // 🔥 agora já com disciplina correta
+			// 🔥 TURMAS (IMPORTANTE)
+			const inputs = document.querySelectorAll("#cad-turmas input");
 
-		}, 100);
+			if (inputs.length === 0) {
+				// 🔥 tenta novamente (espera mais)
+				setTimeout(() => {
+					document.querySelectorAll("#cad-turmas input").forEach(el => {
+						if (dados.turmas && dados.turmas.includes(el.value)) {
+							el.checked = true;
+						}
+					});
+				}, 150);
+			} else {
+				inputs.forEach(el => {
+					if (dados.turmas && dados.turmas.includes(el.value)) {
+						el.checked = true;
+					}
+				});
+			}
+
+			atualizarPreview();
+
+		}, 150); // 🔥 aumentámos tempo (crítico)
 	}	
 	
 	if (dados?.turmas) {
-		setTimeout(() => {
-			document.querySelectorAll("#cad-turmas input").forEach(el => {
-				if (dados.turmas.includes(el.value)) {
-					el.checked = true;
-				}
-			});
-		}, 50);
+		document.querySelectorAll("#cad-turmas input").forEach(el => {
+			if (dados.turmas.includes(el.value)) {
+				el.checked = true;
+			}
+		});
 	}
 
     // eventos
@@ -617,73 +640,86 @@ function abrirFormularioCaderno(dados = null) {
 	form.querySelectorAll("select").forEach(el => {
 		el.addEventListener("change", atualizarPreview);
 	});
+
 }
 
 function preencherDisciplinas() {
-    fetch("data/disciplinas.json")
-        .then(r => r.json())
-        .then(lista => {
 
-            const select = document.getElementById("cad-disciplina");
-            if (!select) return;
+	const select = document.getElementById("cad-disciplina");
+	if (!select) return Promise.resolve();
 
-            select.innerHTML = ""; // limpar
+	select.innerHTML = "";
 
-			const optDefault = document.createElement("option");
-			optDefault.value = "";
-			optDefault.textContent = "Selecionar";
-			optDefault.selected = true;
-			optDefault.disabled = true;
+	return fetch("data/disciplinas.json")
+		.then(res => res.json())
+		.then(disciplinas => {
 
-			select.appendChild(optDefault);
+			disciplinas.forEach(d => {
 
-            lista.forEach(d => {
-                const opt = document.createElement("option");
-                opt.value = d.abbr;
-                opt.textContent = d.nome;
-                select.appendChild(opt);
-            });
-        })
-        .catch(err => console.error("Erro disciplinas:", err));
+				const opt = document.createElement("option");
+				opt.value = d.toUpperCase();
+				opt.textContent = d.toUpperCase();
+
+				select.appendChild(opt);
+			});
+		})
+		.catch(() => {
+			console.warn("Erro ao carregar disciplinas");
+		});
 }
 
 function preencherAnos() {
-    fetch("api/get_dados_estrutura.php")
-        .then(r => r.json())
-        .then(d => {
-            const select = document.getElementById("cad-ano");
-			
-			const optDefault = document.createElement("option");
-			optDefault.value = "";
-			optDefault.textContent = "Selecionar";
-			optDefault.selected = true;
-			optDefault.disabled = true;
 
-			select.appendChild(optDefault);			
-			
-            d.anos.forEach(a => {
-                const opt = document.createElement("option");
-                opt.value = a;
-                opt.textContent = a;
-                select.appendChild(opt);
-            });
-        });
+	const select = document.getElementById("cad-ano");
+	if (!select) return Promise.resolve();
+
+	select.innerHTML = "";
+
+	const anos = ["5", "6", "7", "8", "9"];
+
+	return new Promise(resolve => {
+
+		anos.forEach(a => {
+
+			const opt = document.createElement("option");
+			opt.value = a;
+			opt.textContent = a + "º";
+
+			select.appendChild(opt);
+		});
+
+		resolve();
+	});
 }
 
 function preencherTurmas() {
-    fetch("api/get_dados_estrutura.php")
-        .then(r => r.json())
-        .then(d => {
-            const container = document.getElementById("cad-turmas");
 
-            d.turmas.forEach(t => {
-                const label = document.createElement("label");
-				label.innerHTML = `
-					${t} <input type="checkbox" value="${t}">
-				`;
-                container.appendChild(label);
-            });
-        });
+	const container = document.getElementById("cad-turmas");
+	if (!container) return Promise.resolve();
+
+	container.innerHTML = "";
+
+	// 🔥 usar lista fixa (como tens no sistema)
+	const turmas = ["A", "B", "C", "D", "E", "F"];
+
+	return new Promise(resolve => {
+
+		turmas.forEach(t => {
+
+			const label = document.createElement("label");
+
+			const input = document.createElement("input");
+			input.type = "checkbox";
+			input.value = t;
+
+			label.appendChild(input);
+			label.append(" " + t);
+
+			container.appendChild(label);
+		});
+
+		resolve(); // 🔥 importante para await
+	});
 }
 
 function preencherCores() {
@@ -1299,6 +1335,8 @@ function carregarCadernos() {
 		if (containerMenu) containerMenu.innerHTML = "";
 
 		cadernos.forEach(c => {
+			
+			const isVirtual = c.tipo === "virtual";
 
 			// 🔵 MENU (lista simples)
 			if (containerMenu) {
@@ -1319,8 +1357,11 @@ function carregarCadernos() {
 					</div>
 
 					<div class="caderno-acoes">
-						<button class="btn-editar">✎</button>
-						<button class="btn-delete">✕</button>
+
+						${!isVirtual ? '<button class="btn-editar">✎</button>' : ''}
+
+						${(!isVirtual) ? '<button class="btn-delete">✕</button>' : ''}
+
 					</div>
 				`;
 
@@ -1329,58 +1370,62 @@ function carregarCadernos() {
 					window.location.href = "index.php?caderno=" + c.id;
 				};
 
-				divMenu.querySelector(".btn-delete").onclick = async (e) => {
-					e.stopPropagation();
+				const btnDelete = divMenu.querySelector(".btn-delete");
+				if (btnDelete) {
+					btnDelete.onclick = async (e) => {
+						e.stopPropagation();
 
-					// 🔥 verificar páginas (frontend)
-					const res = await fetch("list_pages.php?caderno=" + c.id);
-					const paginas = await res.json();
+						const res = await fetch("list_pages.php?caderno=" + c.id);
+						const paginas = await res.json();
 
-					let temConteudo = false;
+						let temConteudo = false;
 
-					for (let p of paginas) {
+						for (let p of paginas) {
 
-						const r = await fetch(`get_page.php?caderno=${c.id}&pagina=${p}`);
-						const dados = await r.json();
+							const r = await fetch(`load.php?caderno=${c.id}&pagina=${p}`);
+							const dados = r.ok ? await r.json() : [];
 
-						if (dados && dados.length > 0) {
-							temConteudo = true;
-							break;
+							if (dados && dados.length > 0) {
+								temConteudo = true;
+								break;
+							}
 						}
-					}
 
-					if (temConteudo) {
-						alert("Este caderno contém páginas com conteúdo e não pode ser apagado.");
-						return;
-					}
+						if (temConteudo) {
+							alert("Este caderno contém páginas com conteúdo e não pode ser apagado.");
+							return;
+						}
 
-					if (!confirm("Apagar este caderno?")) return;
+						if (!confirm("Apagar este caderno?")) return;
 
-					// 🔥 delete com validação backend
-					const resp = await fetch("api/apagar_caderno.php?id=" + c.id);
-					const texto = await resp.text();
+						const resp = await fetch("api/apagar_caderno.php?id=" + c.id);
+						const texto = await resp.text();
 
-					let resFinal;
+						let resFinal;
 
-					try {
-						resFinal = JSON.parse(texto);
-					} catch {
-						resFinal = texto;
-					}
+						try {
+							resFinal = JSON.parse(texto);
+						} catch {
+							resFinal = texto;
+						}
 
-					if (resFinal?.erro === "tem_conteudo") {
-						alert("Este caderno tem conteúdo e não pode ser apagado.");
-						return;
-					}
+						if (resFinal?.erro === "tem_conteudo") {
+							alert("Este caderno tem conteúdo e não pode ser apagado.");
+							return;
+						}
 
-					carregarCadernos();
-				};
+						carregarCadernos();
+					};
+				}
 				
 				// 🔥 editar
-				divMenu.querySelector(".btn-editar").onclick = (e) => {
-					e.stopPropagation();
-					abrirFormularioCaderno(c);
-				};
+				const btnEditar = divMenu.querySelector(".btn-editar");
+				if (btnEditar) {
+					btnEditar.onclick = (e) => {
+						e.stopPropagation();
+						abrirFormularioCaderno(c);
+					};
+				}
 
 				containerMenu.appendChild(divMenu);
 			}
